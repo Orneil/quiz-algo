@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -6,20 +7,26 @@
 <style>
     body {
         font-family: Arial, sans-serif;
-        background: #f5f5f5;
+        background: linear-gradient(135deg,#4f46e5,#3b82f6);
         display: flex;
         justify-content: center;
         padding: 50px;
+        height: 100vh;
+        margin: 0;
+        color: #fff;
     }
     .card {
         background: white;
+        color: #222;
         padding: 30px;
         border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        max-width: 900px;
+        box-shadow: 0 4px 25px rgba(0,0,0,0.2);
+        max-width: 800px;
         width: 100%;
+        position: relative;
+        overflow: hidden;
     }
-    h1 { text-align: center; color: #222; }
+    h1 { text-align: center; color: #4f46e5; }
     input {
         width: 100%;
         padding: 10px;
@@ -37,27 +44,73 @@
         cursor: pointer;
         margin-top: 15px;
         font-size: 15px;
+        transition: background 0.3s;
     }
     button:hover { background: #3730a3; }
     #result {
         margin-top: 20px;
         font-weight: bold;
         font-size: 17px;
+        min-height: 30px;
+        text-align: center;
+        transition: transform 0.5s ease, opacity 0.5s ease;
     }
     #sentence {
         font-size: 1.2em;
         margin-top: 20px;
+        min-height: 50px;
+    }
+    #timer {
+        position: absolute;
+        top: 15px;
+        right: 20px;
+        font-weight: bold;
+        font-size: 16px;
+        color: #4f46e5;
+    }
+    #score {
+        position: absolute;
+        top: 15px;
+        left: 20px;
+        font-weight: bold;
+        font-size: 16px;
+        color: #4f46e5;
+    }
+    .firework {
+        position: absolute;
+        width: 8px;
+        height: 8px;
+        background: radial-gradient(circle, #ffd700, #ff0000);
+        border-radius: 50%;
+        pointer-events: none;
+        animation: explode 1s ease-out forwards;
+    }
+    @keyframes explode {
+        0% { transform: scale(1) translate(0,0); opacity: 1; }
+        100% { transform: scale(3) translate(var(--x), var(--y)); opacity: 0; }
+    }
+    .wrong-answers {
+        margin-top: 20px;
+        color: #e53935;
+        font-weight: bold;
+    }
+    .wrong-answers li {
+        margin-bottom: 8px;
     }
 </style>
 </head>
 <body>
 <div class="card">
+    <div id="score">Score: 0</div>
+    <div id="timer">10:00</div>
     <h1>Quiz Révisions Python</h1>
+    <h2>Le Quiz dure 10 minutes et comporte 20 questions.</h2>
     <div id="sentence">Clique sur “Commencer” pour démarrer le quiz.</div>
     <input id="answer" placeholder="Tape le mot manquant" style="display:none;">
     <button id="validate" style="display:none;">Valider</button>
     <button id="start">Commencer</button>
     <div id="result"></div>
+    <ul id="wrongAnswers" class="wrong-answers"></ul>
 </div>
 
 <script>
@@ -111,32 +164,104 @@ const quiz = [
     {sentence: "Une fonction qui ne retourne aucune valeur est une ________.", word: "PROCEDURE"}
 ];
 
-let currentIndex = null;
+let selectedQuestions = [];
+let currentIndex = 0;
+let correctAnswers = 0;
+let wrongAnswers = [];
+let timer;
+let totalTime = 5 * 60; // 10 minutes
+let quizLength = 20;
+
+function shuffleArray(arr) {
+    return arr.sort(() => Math.random() - 0.5);
+}
+
+function startTimer() {
+    timer = setInterval(() => {
+        totalTime--;
+        let minutes = Math.floor(totalTime / 60);
+        let seconds = totalTime % 60;
+        document.getElementById("timer").innerText = `${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
+        if (totalTime <= 0) {
+            clearInterval(timer);
+            endQuiz();
+        }
+    }, 1000);
+}
 
 function askQuestion() {
-    currentIndex = Math.floor(Math.random() * quiz.length);
-    document.getElementById("sentence").innerHTML = quiz[currentIndex].sentence;
+    if(currentIndex >= selectedQuestions.length){
+        endQuiz();
+        return;
+    }
+    document.getElementById("sentence").innerHTML = selectedQuestions[currentIndex].sentence;
+    document.getElementById("answer").value = "";
     document.getElementById("answer").style.display = "block";
     document.getElementById("validate").style.display = "inline-block";
-    document.getElementById("answer").value = "";
     document.getElementById("result").innerHTML = "";
+}
+
+function createFireworks() {
+    for(let i=0;i<15;i++){
+        let fire = document.createElement('div');
+        fire.className = 'firework';
+        fire.style.left = `${Math.random()*100}%`;
+        fire.style.top = `${Math.random()*100}%`;
+        fire.style.setProperty('--x', `${(Math.random()-0.5)*200}px`);
+        fire.style.setProperty('--y', `${(Math.random()-0.5)*200}px`);
+        document.querySelector('.card').appendChild(fire);
+        setTimeout(()=>fire.remove(),1000);
+    }
+}
+
+function endQuiz() {
+    document.getElementById("sentence").innerHTML = `🎉 Quiz terminé ! Votre score : ${correctAnswers}/${quizLength}`;
+    document.getElementById("answer").style.display = "none";
+    document.getElementById("validate").style.display = "none";
+    document.getElementById("result").innerHTML = "";
+
+    // Afficher les mauvaises réponses avec corrections
+    if(wrongAnswers.length > 0){
+        let list = document.getElementById("wrongAnswers");
+        list.innerHTML = "<b>Mauvaises réponses :</b>";
+        wrongAnswers.forEach(item=>{
+            let li = document.createElement('li');
+            li.innerHTML = `"${item.sentence}" → Correct: <b>${item.word}</b>`;
+            list.appendChild(li);
+        });
+    }
+
+    // Si score élevé, lancer animation de félicitations
+    if(correctAnswers >= quizLength * 0.8){
+        for(let i=0;i<50;i++){
+            setTimeout(createFireworks, i*100);
+        }
+    }
 }
 
 document.getElementById("start").onclick = function() {
     this.style.display = "none";
+    selectedQuestions = shuffleArray(quiz).slice(0,quizLength);
     askQuestion();
+    startTimer();
 };
 
 document.getElementById("validate").onclick = function() {
     let userAnswer = document.getElementById("answer").value.trim().toUpperCase();
-    let correctAnswer = quiz[currentIndex].word.toUpperCase();
+    let correctAnswer = selectedQuestions[currentIndex].word.toUpperCase();
     if(userAnswer === correctAnswer){
         document.getElementById("result").innerHTML = "✔️ Bonne réponse !";
+        correctAnswers++;
+        document.getElementById("score").innerText = `Score: ${correctAnswers}`;
+        createFireworks();
     } else {
-        document.getElementById("result").innerHTML = `❌ Faux ! La bonne réponse était : <b>${quiz[currentIndex].word}</b>`;
+        document.getElementById("result").innerHTML = `❌ Faux ! La bonne réponse était : <b>${selectedQuestions[currentIndex].word}</b>`;
+        wrongAnswers.push(selectedQuestions[currentIndex]);
     }
+    currentIndex++;
     setTimeout(askQuestion, 1800);
 };
 </script>
+
 </body>
 </html>
