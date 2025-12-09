@@ -169,7 +169,7 @@ let currentIndex = 0;
 let correctAnswers = 0;
 let wrongAnswers = [];
 let timer;
-let totalTime = 5 * 60; // 10 minutes
+let totalTime = 10 * 60; // 10 minutes
 let quizLength = 20;
 
 function shuffleArray(arr) {
@@ -259,7 +259,7 @@ document.getElementById("validate").onclick = function() {
         wrongAnswers.push(selectedQuestions[currentIndex]);
     }
     currentIndex++;
-    setTimeout(askQuestion, 1800);
+    setTimeout(askQuestion, 1500);
 };
 </script>
 
