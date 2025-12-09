@@ -248,7 +248,7 @@ document.getElementById("start").onclick = function() {
 
 document.getElementById("validate").onclick = function() {
     let userAnswer = document.getElementById("answer").value.trim().toUpperCase();
-    let correctAnswer = selectedQuestions[currentIndex].word.toUpperCase();
+    let correctAnswer = selectedQuestions[currentIndex].word.trim().toUpperCase();
     if(userAnswer === correctAnswer){
         document.getElementById("result").innerHTML = "✔️ Bonne réponse !";
         correctAnswers++;
