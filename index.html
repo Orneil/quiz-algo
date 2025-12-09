@@ -186,6 +186,19 @@ function animateResult(isCorrect){
     }
 }
 
+
+
+
+document.getElementById("answer").addEventListener("keydown", function(e) {
+    if(e.key === "Enter"){  // Détecte la touche Entrée
+        document.getElementById("next").click();  // Simule le clic sur "Suivant"
+    }
+});
+
+
+
+
+
 document.getElementById("start").onclick = function(){
     this.style.display="none";
     document.getElementById("answer").style.display="block";
