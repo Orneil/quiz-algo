@@ -210,6 +210,17 @@ function askQuestion() {
     document.getElementById("result").innerHTML = "";
 }
 
+function normalize(str) {
+    return str
+        .toUpperCase()
+        .normalize("NFD")                 // enlève les accents
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^A-Z0-9 ]/g, "")       // enlève caractères spéciaux
+        .replace(/\s+/g, " ")             // espaces multiples → 1 espace
+        .trim();
+}
+
+
 function createFireworks() {
     for(let i=0;i<15;i++){
         let fire = document.createElement('div');
@@ -256,20 +267,21 @@ document.getElementById("start").onclick = function() {
 };
 
 document.getElementById("validate").onclick = function() {
-    let userAnswer = document.getElementById("answer").value.trim().toUpperCase();
-    let correctAnswer = selectedQuestions[currentIndex].word.trim().toUpperCase();
+    let userAnswer = normalize(document.getElementById("answer").value);
+    let correctAnswer = normalize(selectedQuestions[currentIndex].word);
+
     if(userAnswer === correctAnswer){
-        document.getElementById("result").innerHTML = "✔️ Bonne réponse !";
         correctAnswers++;
-        document.getElementById("score").innerText = `Score: ${correctAnswers}`;
-        createFireworks();
+        document.getElementById("result").innerHTML = "✅ Bonne réponse !";
     } else {
-        document.getElementById("result").innerHTML = `❌ Faux ! La bonne réponse était : <b>${selectedQuestions[currentIndex].word}</b>`;
+        document.getElementById("result").innerHTML = `❌ Mauvaise réponse ! (Correct : ${selectedQuestions[currentIndex].word})`;
         wrongAnswers.push(selectedQuestions[currentIndex]);
     }
+
     currentIndex++;
-    setTimeout(askQuestion, 1500);
+    setTimeout(askQuestion, 1000);
 };
+
 </script>
 
 </body>
