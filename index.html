@@ -259,28 +259,28 @@ function endQuiz() {
     }
 }
 
-document.getElementById("start").onclick = function() {
-    this.style.display = "none";
-    selectedQuestions = shuffleArray(quiz).slice(0,quizLength);
-    askQuestion();
-    startTimer();
-};
-
 document.getElementById("validate").onclick = function() {
     let userAnswer = normalize(document.getElementById("answer").value);
     let correctAnswer = normalize(selectedQuestions[currentIndex].word);
 
-    if(userAnswer === correctAnswer){
+    if (userAnswer === correctAnswer) {
         correctAnswers++;
         document.getElementById("result").innerHTML = "✅ Bonne réponse !";
     } else {
-        document.getElementById("result").innerHTML = `❌ Mauvaise réponse ! (Correct : ${selectedQuestions[currentIndex].word})`;
+        document.getElementById("result").innerHTML =
+            `❌ Mauvaise réponse ! (Correct : ${selectedQuestions[currentIndex].word})`;
         wrongAnswers.push(selectedQuestions[currentIndex]);
     }
 
+    // ✅ MISE À JOUR DU SCORE (comme avant)
+    document.getElementById("score").innerHTML =
+        `Score : ${correctAnswers} / ${currentIndex + 1}`;
+
     currentIndex++;
+
     setTimeout(askQuestion, 1000);
 };
+
 
 </script>
 
