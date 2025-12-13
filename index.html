@@ -259,27 +259,65 @@ function endQuiz() {
     }
 }
 
-document.getElementById("validate").onclick = function() {
-    let userAnswer = normalize(document.getElementById("answer").value);
-    let correctAnswer = normalize(selectedQuestions[currentIndex].word);
+document.getElementById("validate").onclick = function () {
 
-    if (userAnswer === correctAnswer) {
+    if (currentIndex >= selectedQuestions.length) return;
+
+    let userAnswer = normalize(document.getElementById("answer").value);
+    let expected = selectedQuestions[currentIndex].word;
+
+    let isCorrect = false;
+
+    // 👉 CAS 1 : UNE seule réponse
+    if (typeof expected === "string") {
+        isCorrect = userAnswer === normalize(expected);
+    }
+
+    // 👉 CAS 2 : PLUSIEURS réponses attendues
+    if (Array.isArray(expected)) {
+        // On accepte soit :
+        // "EVOLUER TERMINAL"
+        // "EVOLUER, TERMINAL"
+        // "EVOLUER / TERMINAL"
+        let parts = userAnswer.split(" ");
+        isCorrect = expected.every(word =>
+            parts.includes(normalize(word))
+        );
+    }
+
+    if (isCorrect) {
         correctAnswers++;
         document.getElementById("result").innerHTML = "✅ Bonne réponse !";
     } else {
         document.getElementById("result").innerHTML =
-            `❌ Mauvaise réponse ! (Correct : ${selectedQuestions[currentIndex].word})`;
+            `❌ Mauvaise réponse ! (Correct : ${expected})`;
         wrongAnswers.push(selectedQuestions[currentIndex]);
     }
 
-    // ✅ MISE À JOUR DU SCORE (comme avant)
+    // ✅ SCORE MIS À JOUR À CHAQUE QUESTION
     document.getElementById("score").innerHTML =
         `Score : ${correctAnswers} / ${currentIndex + 1}`;
 
     currentIndex++;
-
-    setTimeout(askQuestion, 1000);
+    setTimeout(askQuestion, 800);
 };
+
+document.getElementById("start").onclick = function() {
+    this.style.display = "none";
+
+    selectedQuestions = shuffleArray(quiz).slice(0, quizLength);
+
+    currentIndex = 0;
+    correctAnswers = 0;
+    wrongAnswers = [];
+
+    document.getElementById("score").innerHTML =
+        `Score : 0 / ${quizLength}`;
+
+    askQuestion();
+    startTimer();
+};
+
 
 
 </script>
